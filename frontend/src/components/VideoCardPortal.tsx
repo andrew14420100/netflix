@@ -216,6 +216,7 @@ export default function VideoCardModal({
             }}
           >
             <iframe
+              key={muted ? 'muted' : 'unmuted'} // Force reload on mute change
               src={youtubeEmbedUrl}
               style={{
                 position: "absolute",
