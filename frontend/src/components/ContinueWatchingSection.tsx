@@ -3,14 +3,11 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { useContinueWatching } from "src/hooks/useContinueWatching";
-import { MEDIA_TYPE } from "src/types/Common";
 import { Movie } from "src/types/Movie";
-import VideoItemWithHover from "./VideoItemWithHover";
-import { useGetConfigurationQuery } from "src/store/slices/configuration";
+import ContinueWatchingCard from "./ContinueWatchingCard";
 
 export default function ContinueWatchingSection() {
   const { items, username } = useContinueWatching();
-  const { data: configuration } = useGetConfigurationQuery(undefined);
 
   // Convert ContinueWatchingItem to Movie format
   const movies = useMemo((): Movie[] => {
@@ -82,35 +79,11 @@ export default function ContinueWatchingSection() {
           {movies.slice(0, 12).map((movie, index) => {
             const item = items[index];
             return (
-              <Box key={`${movie.id}-${movie.media_type}`} sx={{ position: 'relative' }}>
-                {/* Card with hover */}
-                <VideoItemWithHover
-                  video={movie}
-                  mediaType={movie.media_type === 'tv' ? MEDIA_TYPE.Tv : MEDIA_TYPE.Movie}
-                />
-                
-                {/* Progress bar under card */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 4,
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    zIndex: 10,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      height: '100%',
-                      width: `${item?.progress || 15}%`, // Default 15% if not set
-                      bgcolor: '#e50914', // Netflix red
-                      transition: 'width 0.3s ease',
-                    }}
-                  />
-                </Box>
-              </Box>
+              <ContinueWatchingCard
+                key={`${movie.id}-${movie.media_type}`}
+                video={movie}
+                item={item}
+              />
             );
           })}
         </Box>
