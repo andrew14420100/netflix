@@ -1176,6 +1176,31 @@ export function Component() {
                             <MovieIcon sx={{ fontSize: 32, color: 'rgba(255,255,255,0.3)' }} />
                           </Box>
                         )}
+                        {/* Episode progress bar */}
+                        {(() => {
+                          const progress = getEpisodeProgress(selectedSeason, episode.episode_number);
+                          return progress > 0 ? (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                height: 4,
+                                bgcolor: 'rgba(100,100,100,0.6)',
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  height: '100%',
+                                  width: `${progress}%`,
+                                  bgcolor: '#e50914',
+                                  transition: 'width 0.3s ease',
+                                }}
+                              />
+                            </Box>
+                          ) : null;
+                        })()}
                       </Box>
 
                       <Box sx={{ flex: 1, minWidth: 0 }}>
