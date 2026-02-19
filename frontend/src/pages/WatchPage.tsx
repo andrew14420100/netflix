@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Box, IconButton, Typography, Stack, CircularProgress, Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { MAIN_PATH } from "src/constant";
+import { useContinueWatching } from "src/hooks/useContinueWatching";
 
 export function Component() {
   const navigate = useNavigate();
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const [searchParams] = useSearchParams();
+  const { addItem, getItem } = useContinueWatching();
   
   // Per le serie TV, ottieni stagione ed episodio dai query params
   const season = searchParams.get("s") || "1";
@@ -18,6 +20,10 @@ export function Component() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track watch time for progress saving
+  const watchStartTime = useRef<number>(Date.now());
+  const initialStartTime = useRef<number>(startTime ? parseInt(startTime) : 0);
 
   // Costruisci l'URL di VixSrc basandosi sul tipo di media
   const getVixSrcUrl = () => {
@@ -46,6 +52,43 @@ export function Component() {
 
   const vixSrcUrl = getVixSrcUrl();
 
+  // Save progress when leaving the page
+  const saveWatchProgress = () => {
+    if (!id) return;
+    
+    // Calculate time watched (in seconds)
+    const timeWatched = Math.floor((Date.now() - watchStartTime.current) / 1000);
+    const currentTime = initialStartTime.current + timeWatched;
+    
+    // Estimate duration (average episode ~45min, movie ~120min)
+    const estimatedDuration = mediaType === 'tv' ? 2700 : 7200;
+    
+    // Get existing item to preserve metadata
+    const existingItem = getItem(parseInt(id), mediaType as 'movie' | 'tv');
+    const duration = existingItem?.duration || estimatedDuration;
+    
+    // Calculate progress percentage
+    const progress = Math.min((currentTime / duration) * 100, 95); // Cap at 95% to avoid marking as complete
+    
+    // Only save if watched more than 30 seconds
+    if (timeWatched > 30) {
+      addItem({
+        tmdbId: parseInt(id),
+        mediaType: mediaType as 'movie' | 'tv',
+        title: existingItem?.title || `${mediaType === 'tv' ? 'Serie TV' : 'Film'} ${id}`,
+        backdrop_path: existingItem?.backdrop_path || '',
+        poster_path: existingItem?.poster_path || '',
+        currentTime,
+        duration,
+        progress,
+        ...(mediaType === 'tv' && { 
+          season: parseInt(season), 
+          episode: parseInt(episode) 
+        }),
+      });
+    }
+  };
+
   useEffect(() => {
     // Timeout per il loading
     const timer = setTimeout(() => {
@@ -54,7 +97,24 @@ export function Component() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Save progress on page leave
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveWatchProgress();
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also save when component unmounts (navigation)
+      saveWatchProgress();
+    };
+  }, [id, mediaType, season, episode]);
+
   const handleGoBack = () => {
+    // Save progress before going back
+    saveWatchProgress();
     // Usa la cronologia reale del browser per tornare alla pagina precedente
     if (window.history.length > 1) {
       navigate(-1);
