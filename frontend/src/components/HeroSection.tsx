@@ -41,9 +41,9 @@ interface TopTrailerProps {
 const fetchHeroSettings = async (): Promise<{ hero: HeroSettings | null; type: 'movie' | 'tv' }> => {
   try {
     // Add cache-busting timestamp and no-cache headers
-    const timestamp = Date.now();
+    // ✅ Removed cache-busting for better performance
     const response = await fetch(`/api/public/hero?_t=${timestamp}`, {
-      cache: 'no-store',
+      cache: 'default',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
@@ -55,7 +55,7 @@ const fetchHeroSettings = async (): Promise<{ hero: HeroSettings | null; type: '
     if (data && data.contentId) {
       // Determine type from available contents with cache-busting
       const contentsRes = await fetch(`/api/public/contents/available?_t=${timestamp}`, {
-        cache: 'no-store',
+        cache: 'default',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
