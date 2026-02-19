@@ -114,11 +114,11 @@ export default function VideoCardModal({
     return null;
   }, [imagesData]);
 
-  // Start video after short delay
+  // ✅ Wait 6 SECONDS before starting video
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowVideo(true);
-    }, 500);
+    }, 6000); // 6 seconds!
     return () => clearTimeout(timer);
   }, []);
 
@@ -127,7 +127,8 @@ export default function VideoCardModal({
     navigate(`/${MAIN_PATH.browse}/${mediaType}/${video.id}`);
   };
 
-  const handlePlayClick = () => {
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setPortal(null, null);
     if (mediaType === MEDIA_TYPE.Tv) {
       navigate(`/${MAIN_PATH.watch}/tv/${video.id}?s=1&e=1`);
@@ -136,7 +137,8 @@ export default function VideoCardModal({
     }
   };
 
-  const handleMuteToggle = () => {
+  const handleMuteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (playerRef.current) {
       const newMuted = playerRef.current.toggleMute();
       setMuted(newMuted);
@@ -184,24 +186,25 @@ export default function VideoCardModal({
         onClick={handleNavigateToDetail}
         data-testid={`video-card-image-${video.id}`}
       >
-        {/* Background Image */}
-        {!showVideo && (
-          <img
-            src={imageUrl}
-            style={{
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              position: "absolute",
-            }}
-            alt={video.title}
-          />
-        )}
+        {/* ✅ Background Image - Visible for 6 seconds */}
+        <img
+          src={imageUrl}
+          style={{
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            position: "absolute",
+            opacity: showVideo ? 0 : 1,
+            transition: "opacity 0.8s ease-in-out",
+            zIndex: showVideo ? 0 : 2,
+          }}
+          alt={video.title}
+        />
 
-        {/* Trailer Video */}
-        {trailerKey && showVideo && (
+        {/* ✅ Trailer Video - Starts after 6 seconds */}
+        {trailerKey && (
           <Box
             sx={{
               position: "absolute",
@@ -210,13 +213,15 @@ export default function VideoCardModal({
               width: "100%",
               height: "100%",
               zIndex: 1,
+              opacity: showVideo ? 1 : 0,
+              transition: "opacity 0.8s ease-in-out",
             }}
           >
             <VideoJSPlayer
               options={{
                 loop: true,
                 muted: true,
-                autoplay: true,
+                autoplay: showVideo, // Only autoplay when visible
                 controls: false,
                 responsive: true,
                 fluid: true,
@@ -224,13 +229,14 @@ export default function VideoCardModal({
                 sources: [
                   {
                     type: "video/youtube",
-                    src: `https://www.youtube.com/watch?v=${trailerKey}`,
+                    // ✅ YouTube parameters to hide ALL info and controls
+                    src: `https://www.youtube.com/watch?v=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0`,
                   },
                 ],
               }}
               ref={playerRef}
             />
-            {/* Overlay to block YouTube controls */}
+            {/* ✅ COMPLETE OVERLAY - Blocks ALL interactions with video */}
             <Box
               sx={{
                 position: 'absolute',
@@ -238,14 +244,17 @@ export default function VideoCardModal({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                zIndex: 2,
-                pointerEvents: 'none',
+                zIndex: 100,
+                backgroundColor: 'transparent',
+                cursor: 'pointer',
+                pointerEvents: 'all', // Block all mouse events to video
               }}
+              onClick={handleNavigateToDetail}
             />
           </Box>
         )}
 
-        {/* Gradient overlays */}
+        {/* Gradient overlay for better readability */}
         <Box
           sx={{
             position: "absolute",
@@ -259,7 +268,7 @@ export default function VideoCardModal({
           }}
         />
 
-        {/* Logo in bottom left - NO TEXT TITLE */}
+        {/* ✅ Logo in bottom left - NO TEXT TITLE */}
         {logoPath && (
           <Box
             sx={{
@@ -295,10 +304,7 @@ export default function VideoCardModal({
         >
           <NetflixIconButton
             size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMuteToggle();
-            }}
+            onClick={handleMuteToggle}
           >
             {muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
           </NetflixIconButton>
@@ -315,15 +321,24 @@ export default function VideoCardModal({
             >
               <PlayCircleIcon sx={{ width: 40, height: 40 }} />
             </NetflixIconButton>
-            <NetflixIconButton data-testid={`video-card-add-${video.id}`}>
+            <NetflixIconButton 
+              onClick={(e) => e.stopPropagation()}
+              data-testid={`video-card-add-${video.id}`}
+            >
               <AddIcon />
             </NetflixIconButton>
-            <NetflixIconButton data-testid={`video-card-like-${video.id}`}>
+            <NetflixIconButton 
+              onClick={(e) => e.stopPropagation()}
+              data-testid={`video-card-like-${video.id}`}
+            >
               <ThumbUpOffAltIcon />
             </NetflixIconButton>
             <div style={{ flexGrow: 1 }} />
             <NetflixIconButton
-              onClick={handleNavigateToDetail}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNavigateToDetail();
+              }}
               data-testid={`video-card-expand-${video.id}`}
             >
               <ExpandMoreIcon />
