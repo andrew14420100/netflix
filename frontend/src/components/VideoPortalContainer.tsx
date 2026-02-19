@@ -37,17 +37,6 @@ export default function VideoPortalContainer() {
     }
   }
 
-  // ✅ Scroll prevention when portal is open
-  useEffect(() => {
-    if (hasToRender) {
-      const originalOverflow = document.body.style.overflow;
-      // Don't actually prevent scroll, just prevent unwanted effects
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-  }, [hasToRender]);
-
   return (
     <>
       <AnimatePresence mode="wait">
@@ -65,15 +54,19 @@ export default function VideoPortalContainer() {
         <motion.div
           ref={container}
           variants={variant}
+          data-portal-container="true"
           style={{
-            // ✅ High z-index to appear above everything
-            zIndex: 9999,
+            // ✅ Very high z-index to appear above everything
+            zIndex: 10000,
             position: "absolute",
             display: "inline-block",
+            // ✅ Ensure pointer events work
+            pointerEvents: hasToRender ? "auto" : "none",
             // ✅ Smooth transition
             transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             ...(rect && {
-              // ✅ Better positioning - card grows upward
+              // ✅ Position portal EXACTLY over the card (no gap!)
+              // The card is scaled 1.5x, so we position to match
               top: rect.top + window.pageYOffset - 0.75 * rect.height,
               ...(isLastElement
                 ? {
