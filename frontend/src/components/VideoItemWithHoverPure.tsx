@@ -57,13 +57,13 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
     
     if (this.containerRef) {
       this.containerRef.style.transform = "scale(1)";
-      this.containerRef.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.6s";
+      this.containerRef.style.transition = "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.25s";
       
       setTimeout(() => {
         if (this.containerRef && !this.isHovered) {
           this.containerRef.style.zIndex = "1";
         }
-      }, 600); // 300ms → 600ms
+      }, 250); // 600ms → 250ms
     }
     
     if (this.imageRef) {
