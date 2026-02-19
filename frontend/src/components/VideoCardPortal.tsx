@@ -285,7 +285,7 @@ export default function VideoCardModal({
           </Box>
         )}
 
-        {/* Audio indicator (muted by default in iframe) */}
+        {/* Audio toggle button - Actually works by reloading iframe */}
         <Box
           sx={{
             position: "absolute",
@@ -294,20 +294,15 @@ export default function VideoCardModal({
             zIndex: 4,
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              border: '1px solid rgba(255,255,255,0.5)',
-              bgcolor: 'rgba(0,0,0,0.5)',
+          <NetflixIconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMuted(!muted);
             }}
           >
-            <VolumeOffIcon sx={{ fontSize: 18, color: 'white' }} />
-          </Box>
+            {muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+          </NetflixIconButton>
         </Box>
       </div>
 
