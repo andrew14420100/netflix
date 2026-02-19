@@ -29,6 +29,15 @@ const StyledSlider = styled(Slider)(
     "& > .slick-list": {
       overflow: "visible",
     },
+    // ✅ Smooth animations for all slides
+    "& .slick-slide": {
+      transition: "z-index 0s 0.3s",
+      position: "relative",
+    },
+    "& .slick-slide:hover": {
+      zIndex: "999 !important",
+      transition: "z-index 0s 0s",
+    },
     [theme.breakpoints.up("sm")]: {
       "& > .slick-list": {
         width: `calc(100% - ${2 * padding}px)`,
