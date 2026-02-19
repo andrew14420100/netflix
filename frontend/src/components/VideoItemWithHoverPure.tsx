@@ -24,13 +24,13 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
     this.props.handleHover(true);
     
     if (this.containerRef) {
-      // ✅ MOLTO PIÙ PICCOLO: Solo 1.05x per effetto subtle
+      // ✅ Transition PIÙ LENTA: 0.6s invece di 0.3s
       this.containerRef.style.zIndex = "9999";
-      this.containerRef.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+      this.containerRef.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
       
       requestAnimationFrame(() => {
         if (this.containerRef) {
-          this.containerRef.style.transform = "scale(1.05)"; // 1.5x → 1.05x
+          this.containerRef.style.transform = "scale(1.05)";
         }
       });
     }
