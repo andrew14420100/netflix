@@ -43,6 +43,16 @@ export type MovieDetail = {
   vote_count: number;
 };
 
+export type ContinueWatchingResumeInfo = {
+  tmdbId: number;
+  mediaType: 'movie' | 'tv';
+  currentTime?: number;
+  duration?: number;
+  progress?: number;
+  season?: number;
+  episode?: number;
+};
+
 export type Movie = {
   poster_path: string | null;
   adult: boolean;
@@ -50,12 +60,16 @@ export type Movie = {
   release_date: string;
   genre_ids: number[];
   id: number;
-  original_title: string;
-  original_language: string;
+  original_title?: string;
+  original_language?: string;
   title: string;
+  name?: string;
   backdrop_path: string | null;
-  popularity: number;
-  vote_count: number;
-  video: boolean;
+  popularity?: number;
+  vote_count?: number;
+  video?: boolean;
   vote_average: number;
+  media_type?: string;
+  runtime?: number;
+  resumeInfo?: ContinueWatchingResumeInfo;
 };
