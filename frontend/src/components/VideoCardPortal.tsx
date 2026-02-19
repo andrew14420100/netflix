@@ -1,18 +1,19 @@
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Stack from "@mui/material/Stack";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
-import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
 import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import { Movie } from "src/types/Movie";
 import { usePortal } from "src/providers/PortalProvider";
 import { formatMinuteToReadable } from "src/utils/common";
 import NetflixIconButton from "./NetflixIconButton";
-import MaxLineTypography from "./MaxLineTypography";
 import AgeLimitChip from "./AgeLimitChip";
 import QualityChip from "./QualityChip";
 import GenreBreadcrumbs from "./GenreBreadcrumbs";
@@ -22,6 +23,12 @@ import { useGetGenresQuery } from "src/store/slices/genre";
 import { MAIN_PATH } from "src/constant";
 import Box from "@mui/material/Box";
 import { getMediaImageUrl } from "src/hooks/useCDNImage";
+import {
+  useGetAppendedVideosQuery,
+  useGetMediaImagesQuery,
+  useGetAllVideosQuery,
+} from "src/store/slices/discover";
+import VideoJSPlayer, { VideoJSPlayerRef } from "./watch/VideoJSPlayer";
 
 interface VideoCardModalProps {
   video: Movie;
@@ -29,34 +36,113 @@ interface VideoCardModalProps {
   mediaType?: MEDIA_TYPE;
 }
 
+// Helper to get Italian trailer
+const getItalianTrailerKey = (detailVideos: any[], allVideos: any[]): string | null => {
+  const videoMap = new Map<string, any>();
+  [...(detailVideos || []), ...(allVideos || [])].forEach(v => {
+    if (v.site === "YouTube" && v.key) {
+      videoMap.set(v.key, v);
+    }
+  });
+  const videos = Array.from(videoMap.values());
+  
+  if (!videos.length) return null;
+  
+  const italianTrailer = videos.find((v: any) => v.iso_639_1 === "it" && v.type === "Trailer");
+  if (italianTrailer) return italianTrailer.key;
+  
+  const italianTeaser = videos.find((v: any) => v.iso_639_1 === "it" && v.type === "Teaser");
+  if (italianTeaser) return italianTeaser.key;
+  
+  const italianVideo = videos.find((v: any) => v.iso_639_1 === "it");
+  if (italianVideo) return italianVideo.key;
+  
+  const englishTrailer = videos.find((v: any) => v.iso_639_1 === "en" && v.type === "Trailer");
+  if (englishTrailer) return englishTrailer.key;
+  
+  const anyTrailer = videos.find((v: any) => v.type === "Trailer");
+  if (anyTrailer) return anyTrailer.key;
+  
+  return videos[0]?.key || null;
+};
+
 export default function VideoCardModal({
   video,
   anchorElement,
   mediaType = MEDIA_TYPE.Movie,
 }: VideoCardModalProps) {
   const navigate = useNavigate();
-
   const { data: configuration } = useGetConfigurationQuery(undefined);
   const { data: genres } = useGetGenresQuery(mediaType);
   const setPortal = usePortal();
   const rect = anchorElement.getBoundingClientRect();
+  const playerRef = useRef<VideoJSPlayerRef | null>(null);
+  const [muted, setMuted] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
 
-  // Naviga SEMPRE su pagina dedicata, MAI modal
+  // Fetch videos and images
+  const { data: detailData } = useGetAppendedVideosQuery({
+    mediaType,
+    id: video.id,
+  });
+  
+  const { data: allVideosData } = useGetAllVideosQuery({
+    mediaType,
+    id: video.id,
+  });
+  
+  const { data: imagesData } = useGetMediaImagesQuery({
+    mediaType,
+    id: video.id,
+  });
+
+  const trailerKey = useMemo(() => {
+    return getItalianTrailerKey(
+      detailData?.videos?.results || [],
+      allVideosData?.results || []
+    );
+  }, [detailData?.videos?.results, allVideosData?.results]);
+
+  // Get logo from TMDB
+  const logoPath = useMemo(() => {
+    if (imagesData?.logos && imagesData.logos.length > 0) {
+      const italianLogo = imagesData.logos.find((l: any) => l.iso_639_1 === 'it');
+      const englishLogo = imagesData.logos.find((l: any) => l.iso_639_1 === 'en');
+      const logo = italianLogo || englishLogo || imagesData.logos[0];
+      return `https://image.tmdb.org/t/p/w500${logo.file_path}`;
+    }
+    return null;
+  }, [imagesData]);
+
+  // Start video after short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowVideo(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleNavigateToDetail = () => {
     setPortal(null, null);
     navigate(`/${MAIN_PATH.browse}/${mediaType}/${video.id}`);
   };
-  // Gestisce la navigazione al player con il mediaType corretto
+
   const handlePlayClick = () => {
     setPortal(null, null);
     if (mediaType === MEDIA_TYPE.Tv) {
-      // Per le serie TV, inizia sempre dall'episodio 1 della stagione 1
       navigate(`/${MAIN_PATH.watch}/tv/${video.id}?s=1&e=1`);
     } else {
       navigate(`/${MAIN_PATH.watch}/movie/${video.id}`);
     }
   };
-  // Usa CDN se disponibile, altrimenti TMDB
+
+  const handleMuteToggle = () => {
+    if (playerRef.current) {
+      const newMuted = playerRef.current.toggleMute();
+      setMuted(newMuted);
+    }
+  };
+
   const imageUrl = getMediaImageUrl(
     video.id,
     'backdrop',
@@ -72,7 +158,7 @@ export default function VideoCardModal({
         setPortal(null, null);
       }}
       onPointerEnter={() => {
-        // Keep portal alive when hovering over it
+        // Keep portal alive
       }}
       sx={{
         width: rect.width * 1.5,
@@ -81,12 +167,10 @@ export default function VideoCardModal({
         borderRadius: "8px",
         overflow: "hidden",
         transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-        pointerEvents: "auto", // ✅ Ensure portal can receive hover events
+        pointerEvents: "auto",
         "&:hover": {
           boxShadow: "0 12px 48px rgba(0, 0, 0, 0.8)",
         },
-      }}
-    >
       }}
     >
       <div
@@ -95,61 +179,132 @@ export default function VideoCardModal({
           position: "relative",
           paddingTop: "calc(9 / 16 * 100%)",
           cursor: "pointer",
+          backgroundColor: "#000",
         }}
         onClick={handleNavigateToDetail}
         data-testid={`video-card-image-${video.id}`}
       >
-        <img
-          src={imageUrl}
-          style={{
-            top: 0,
-            height: "100%",
-            objectFit: "cover",
-            position: "absolute",
-            backgroundPosition: "50%",
-          }}
-          alt={video.title}
-        />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            paddingLeft: "16px",
-            paddingRight: "16px",
-            paddingBottom: "4px",
-            position: "absolute",
-          }}
-        >
-          <MaxLineTypography
-            maxLine={2}
-            sx={{ width: "80%", fontWeight: 700 }}
-            variant="h6"
-          >
-            {video.title}
-          </MaxLineTypography>
-          <div style={{ flexGrow: 1 }} />
-          {/* Indicatore audio visivo - NON cliccabile */}
+        {/* Background Image */}
+        {!showVideo && (
+          <img
+            src={imageUrl}
+            style={{
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+            }}
+            alt={video.title}
+          />
+        )}
+
+        {/* Trailer Video */}
+        {trailerKey && showVideo && (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              border: '1px solid rgba(255,255,255,0.5)',
-              bgcolor: 'rgba(0,0,0,0.5)',
-              pointerEvents: 'none',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: 1,
             }}
           >
-            <VolumeUpIcon sx={{ fontSize: 18, color: 'white' }} />
+            <VideoJSPlayer
+              options={{
+                loop: true,
+                muted: true,
+                autoplay: true,
+                controls: false,
+                responsive: true,
+                fluid: true,
+                techOrder: ["youtube"],
+                sources: [
+                  {
+                    type: "video/youtube",
+                    src: `https://www.youtube.com/watch?v=${trailerKey}`,
+                  },
+                ],
+              }}
+              ref={playerRef}
+            />
+            {/* Overlay to block YouTube controls */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 2,
+                pointerEvents: 'none',
+              }}
+            />
           </Box>
-        </div>
+        )}
+
+        {/* Gradient overlays */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "60%",
+            background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)",
+            zIndex: 3,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Logo in bottom left - NO TEXT TITLE */}
+        {logoPath && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 12,
+              left: 12,
+              zIndex: 4,
+              maxWidth: "50%",
+              pointerEvents: "none",
+            }}
+          >
+            <img
+              src={logoPath}
+              alt={video.title}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "80px",
+                objectFit: "contain",
+                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.8))",
+              }}
+            />
+          </Box>
+        )}
+
+        {/* Audio toggle button */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 12,
+            right: 12,
+            zIndex: 4,
+          }}
+        >
+          <NetflixIconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleMuteToggle();
+            }}
+          >
+            {muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+          </NetflixIconButton>
+        </Box>
       </div>
+
       <CardContent>
         <Stack spacing={1}>
           <Stack direction="row" spacing={1}>
@@ -167,7 +322,6 @@ export default function VideoCardModal({
               <ThumbUpOffAltIcon />
             </NetflixIconButton>
             <div style={{ flexGrow: 1 }} />
-            {/* Freccia naviga a pagina dedicata */}
             <NetflixIconButton
               onClick={handleNavigateToDetail}
               data-testid={`video-card-expand-${video.id}`}
