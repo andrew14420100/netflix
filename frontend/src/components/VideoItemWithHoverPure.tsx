@@ -94,7 +94,7 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
           paddingTop: "calc(9 / 16 * 100%)",
           transform: "scale(1)",
           transformOrigin: "center center",
-          transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.6s",
+          transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.25s",
           zIndex: 1,
           willChange: "transform",
           pointerEvents: "auto",
