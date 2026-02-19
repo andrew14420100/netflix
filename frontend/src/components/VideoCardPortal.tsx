@@ -28,6 +28,7 @@ import {
   useGetMediaImagesQuery,
   useGetAllVideosQuery,
 } from "src/store/slices/discover";
+import { useContinueWatching } from "src/hooks/useContinueWatching";
 
 interface VideoCardModalProps {
   video: Movie;
