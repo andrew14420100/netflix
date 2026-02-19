@@ -37,35 +37,18 @@ interface TopTrailerProps {
   mediaType: MEDIA_TYPE;
 }
 
-// Fetch hero settings from backend with cache-busting
+// ✅ OPTIMIZED: Fetch hero settings from backend with proper caching (NO cache-busting)
 const fetchHeroSettings = async (): Promise<{ hero: HeroSettings | null; type: 'movie' | 'tv' }> => {
   try {
-    // Add cache-busting timestamp and no-cache headers
-    // ✅ Removed cache-busting for better performance
-    const response = await fetch(`/api/public/hero?_t=${timestamp}`, {
-      cache: 'default',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-      },
+    // Let browser cache work - improves performance on navigation back
+    const response = await fetch(`/api/public/hero`, {
+      cache: 'default', // Browser will cache for better performance
     });
     if (!response.ok) return { hero: null, type: 'tv' };
     const data = await response.json();
     
     if (data && data.contentId) {
-      // Determine type from available contents with cache-busting
-      const contentsRes = await fetch(`/api/public/contents/available?_t=${timestamp}`, {
-        cache: 'default',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-        },
-      });
-      if (contentsRes.ok) {
-        const contentsData = await contentsRes.json();
-        const content = contentsData.items?.find((c: any) => String(c.tmdbId) === data.contentId);
-        return { hero: data, type: content?.type || data.mediaType || 'tv' };
-      }
+      // Use mediaType directly from hero settings (no extra API call needed)
       return { hero: data, type: data.mediaType || 'tv' };
     }
     return { hero: null, type: 'tv' };
