@@ -442,6 +442,9 @@ export default function TopTrailer({ mediaType }: TopTrailerProps) {
                       size="small" 
                       mediaType={featuredMediaType}
                       mediaId={featuredId}
+                      title={displayTitle}
+                      backdrop_path={detailData?.backdrop_path}
+                      poster_path={detailData?.poster_path}
                     />
                     <MoreInfoButton
                       size="small"
