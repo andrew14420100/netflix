@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { COMMON_TITLES, TV_TITLES } from "src/constant";
 import HeroSection from "src/components/HeroSection";
+import ContinueWatchingSection from "src/components/ContinueWatchingSection";
 import { genreSliceEndpoints, useGetGenresQuery } from "src/store/slices/genre";
 import { MEDIA_TYPE } from "src/types/Common";
 import { CustomGenre, Genre } from "src/types/Genre";
