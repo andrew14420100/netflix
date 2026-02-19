@@ -65,6 +65,9 @@ export function Component() {
       <Stack spacing={2} data-testid="home-page">
         <HeroSection mediaType={currentMediaType} />
         
+        {/* Continue Watching Section */}
+        <ContinueWatchingSection />
+        
         {/* Sections - from database or defaults */}
         {sectionTitles.map((genre) => (
           <SliderRowForGenre
