@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
@@ -10,16 +10,7 @@ import { MEDIA_TYPE } from "src/types/Common";
 import { CustomGenre, Genre } from "src/types/Genre";
 import SliderRowForGenre from "src/components/VideoSlider";
 import store from "src/store";
-
-// Backend API URL
-const API_URL = import.meta.env.VITE_BACKEND_URL || "";
-
-interface SectionConfig {
-  name: string;
-  apiString: string;
-  mediaType: string;
-  order: number;
-}
+import { useSectionsData } from "src/hooks/useSectionsData";
 
 export async function loader() {
   await store.dispatch(
@@ -30,36 +21,17 @@ export async function loader() {
 
 export function Component() {
   const { mediaType: filterMediaType } = useParams<{ mediaType?: string }>();
-  const [dbSections, setDbSections] = useState<SectionConfig[]>([]);
-  const [sectionsLoaded, setSectionsLoaded] = useState(false);
+  
+  // ✅ Use cached sections data
+  const { data: dbSections = [], isLoading: sectionsLoading } = useSectionsData();
   
   // Determine media type from URL or default to movie
   const currentMediaType = filterMediaType === "tv" ? MEDIA_TYPE.Tv : MEDIA_TYPE.Movie;
   
   const { data: genres, isSuccess } = useGetGenresQuery(currentMediaType);
 
-  // Load sections from database
-  useEffect(() => {
-    const fetchSections = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/public/sections`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.items && data.items.length > 0) {
-            setDbSections(data.items);
-          }
-        }
-      } catch (e) {
-        console.log("Using default sections");
-      } finally {
-        setSectionsLoaded(true);
-      }
-    };
-    fetchSections();
-  }, []);
-
-  // Get sections: use database sections if available, otherwise use defaults
-  const getSections = (): CustomGenre[] => {
+  // ✅ Memoize sections to prevent recalculation
+  const sectionTitles = useMemo((): CustomGenre[] => {
     // If we have sections from database, use those
     if (dbSections.length > 0) {
       // Filter by current media type
@@ -84,11 +56,10 @@ export function Component() {
       return TV_TITLES;
     }
     return COMMON_TITLES;
-  };
+  }, [dbSections, currentMediaType]);
 
+  // Show hero even while sections are loading
   if (isSuccess && genres && genres.length > 0) {
-    const sectionTitles = getSections();
-    
     return (
       <Stack spacing={2} data-testid="home-page">
         <HeroSection mediaType={currentMediaType} />
@@ -114,7 +85,7 @@ export function Component() {
     );
   }
   
-  // Loading state
+  // Loading state - but still show Hero
   return (
     <Stack spacing={2} data-testid="home-page-loading">
       <HeroSection mediaType={currentMediaType} />
