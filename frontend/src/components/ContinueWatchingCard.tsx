@@ -1,8 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import { Movie } from "src/types/Movie";
 import { MEDIA_TYPE } from "src/types/Common";
-import { MAIN_PATH } from "src/constant";
 import VideoItemWithHover from "./VideoItemWithHover";
 import { ContinueWatchingItem } from "src/hooks/useContinueWatching";
 
@@ -12,43 +10,17 @@ interface ContinueWatchingCardProps {
 }
 
 export default function ContinueWatchingCard({ video, item }: ContinueWatchingCardProps) {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    // ✅ Resume from saved position
-    let watchUrl = '';
-    
-    if (item.mediaType === 'tv') {
-      // Resume TV show from saved season/episode
-      const s = item.season || 1;
-      const e = item.episode || 1;
-      watchUrl = `/${MAIN_PATH.watch}/tv/${item.tmdbId}?s=${s}&e=${e}`;
-      
-      // Add timestamp if available
-      if (item.currentTime) {
-        watchUrl += `&t=${Math.floor(item.currentTime)}`;
-      }
-    } else {
-      // Resume movie from saved timestamp
-      watchUrl = `/${MAIN_PATH.watch}/movie/${item.tmdbId}`;
-      
-      // Add timestamp parameter for resume
-      if (item.currentTime) {
-        watchUrl += `?t=${Math.floor(item.currentTime)}`;
-      }
-    }
-    
-    navigate(watchUrl);
+  // Enhance video object with resume info for the portal
+  const videoWithResumeInfo: Movie & { resumeInfo?: ContinueWatchingItem } = {
+    ...video,
+    resumeInfo: item,
   };
 
   return (
-    <Box
-      sx={{ position: 'relative', cursor: 'pointer' }}
-      onClick={handleClick}
-    >
-      {/* Card with hover */}
+    <Box sx={{ position: 'relative' }}>
+      {/* Card with hover - VideoItemWithHover handles all interactions */}
       <VideoItemWithHover
-        video={video}
+        video={videoWithResumeInfo}
         mediaType={item.mediaType === 'tv' ? MEDIA_TYPE.Tv : MEDIA_TYPE.Movie}
       />
       
