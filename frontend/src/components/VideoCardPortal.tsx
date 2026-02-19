@@ -75,6 +75,7 @@ export default function VideoCardModal({
   const { data: configuration } = useGetConfigurationQuery(undefined);
   const { data: genres } = useGetGenresQuery(mediaType);
   const setPortal = usePortal();
+  const { addItem } = useContinueWatching();
   const rect = anchorElement.getBoundingClientRect();
   const [muted, setMuted] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
