@@ -1555,13 +1555,17 @@ async def get_tmdb_on_the_air(page: int = 1, verify_vixsrc: bool = True):
 
 @app.get("/api/public/contents/home")
 async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
-    """Get contents for home page directly from TMDB, filtered by vixsrc availability"""
+    """Get contents for home page directly from TMDB, filtered by vixsrc availability and NO ANIME"""
     all_items = []
     
     # Fetch trending
     trending_data = await fetch_tmdb_data("/trending/all/week", {"page": 1})
     if trending_data and "results" in trending_data:
         for item in trending_data["results"][:20]:
+            # ❌ SKIP ANIME CONTENT
+            if is_anime_content(item):
+                continue
+                
             tmdb_id = item.get("id")
             item_type = item.get("media_type", "movie")
             
@@ -1589,6 +1593,10 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
     popular_movies = await fetch_tmdb_data("/movie/popular", {"page": 1})
     if popular_movies and "results" in popular_movies:
         for item in popular_movies["results"][:15]:
+            # ❌ SKIP ANIME CONTENT
+            if is_anime_content(item):
+                continue
+                
             tmdb_id = item.get("id")
             
             if verify_vixsrc:
@@ -1615,6 +1623,10 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
     popular_tv = await fetch_tmdb_data("/tv/popular", {"page": 1})
     if popular_tv and "results" in popular_tv:
         for item in popular_tv["results"][:15]:
+            # ❌ SKIP ANIME CONTENT
+            if is_anime_content(item):
+                continue
+                
             tmdb_id = item.get("id")
             
             if verify_vixsrc:
@@ -1641,6 +1653,10 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
     top_rated = await fetch_tmdb_data("/movie/top_rated", {"page": 1})
     if top_rated and "results" in top_rated:
         for item in top_rated["results"][:10]:
+            # ❌ SKIP ANIME CONTENT
+            if is_anime_content(item):
+                continue
+                
             tmdb_id = item.get("id")
             
             if verify_vixsrc:
@@ -1663,7 +1679,7 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
                 "vixsrc_available": True
             })
     
-    # Remove duplicates
+    # Remove duplicates and sort deterministically
     seen = set()
     unique_items = []
     for item in all_items:
@@ -1672,12 +1688,13 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
             item["release_date_it"] = format_italian_date(item.get("release_date"))
             unique_items.append(item)
     
-    # Group by section
+    # ✅ SORT EACH SECTION BY TMDB ID for deterministic order
+    # Group by section first
     sections = {
-        "trending": [c for c in unique_items if c.get("_section") == "trending"][:12],
-        "popular_movies": [c for c in unique_items if c.get("_section") == "popular_movies"][:12],
-        "popular_tv": [c for c in unique_items if c.get("_section") == "popular_tv"][:12],
-        "top_rated": [c for c in unique_items if c.get("_section") == "top_rated"][:12],
+        "trending": sorted([c for c in unique_items if c.get("_section") == "trending"], key=lambda x: x["tmdbId"])[:12],
+        "popular_movies": sorted([c for c in unique_items if c.get("_section") == "popular_movies"], key=lambda x: x["tmdbId"])[:12],
+        "popular_tv": sorted([c for c in unique_items if c.get("_section") == "popular_tv"], key=lambda x: x["tmdbId"])[:12],
+        "top_rated": sorted([c for c in unique_items if c.get("_section") == "top_rated"], key=lambda x: x["tmdbId"])[:12],
     }
     
     return {
