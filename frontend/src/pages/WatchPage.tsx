@@ -218,7 +218,7 @@ export function Component() {
       {/* VixSrc Player Embed */}
       {vixSrcUrl && (
         <iframe
-          src={`${vixSrcUrl}?primaryColor=E50914&secondaryColor=8B0000&autoplay=true&lang=it`}
+          src={vixSrcUrl}
           style={{
             width: "100%",
             height: "100%",
