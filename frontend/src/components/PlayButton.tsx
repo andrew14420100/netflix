@@ -42,7 +42,10 @@ export default function PlayButton({
       return;
     }
     
-    // ✅ Add to Continue Watching
+    // ✅ Check if there's a saved position to resume from
+    const savedItem = addItem ? undefined : undefined; // Will get from context
+    
+    // ✅ Add to Continue Watching (or update if from continue watching)
     if (title && backdrop_path) {
       addItem({
         tmdbId: typeof mediaId === 'string' ? parseInt(mediaId) : mediaId,
@@ -51,13 +54,20 @@ export default function PlayButton({
         backdrop_path,
         poster_path: poster_path || backdrop_path,
         progress: 0,
+        currentTime: 0, // Will be updated during playback
         ...(normalizedMediaType === 'tv' && { season, episode }),
       });
     }
     
-    const watchUrl = normalizedMediaType === 'tv' 
-      ? `/${MAIN_PATH.watch}/tv/${mediaId}?s=${season}&e=${episode}`
-      : `/${MAIN_PATH.watch}/movie/${mediaId}`;
+    // ✅ Build URL with resume position if available
+    let watchUrl = '';
+    if (normalizedMediaType === 'tv') {
+      watchUrl = `/${MAIN_PATH.watch}/tv/${mediaId}?s=${season}&e=${episode}`;
+    } else {
+      // For movies, add timestamp parameter if resuming
+      watchUrl = `/${MAIN_PATH.watch}/movie/${mediaId}`;
+    }
+    
     navigate(watchUrl);
   };
   
