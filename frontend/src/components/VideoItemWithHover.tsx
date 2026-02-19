@@ -43,10 +43,10 @@ export default function VideoItemWithHover({ video, mediaType }: VideoItemWithHo
     }
 
     if (hovered) {
-      // ✅ Show portal after small delay for smooth entry
+      // ✅ Delay AUMENTATO: 600ms per hover più lento
       hoverTimeoutRef.current = setTimeout(() => {
         setIsHovered(true);
-      }, 300); // Small delay to avoid flicker on fast mouse movement
+      }, 600); // 300ms → 600ms
     } else {
       // ✅ Hide immediately when mouse leaves
       // The portal itself will handle keeping itself open if you hover over it
