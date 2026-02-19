@@ -114,6 +114,32 @@ export function Component() {
   // Continue watching data for episode progress bars
   const { items: continueWatchingItems, getItem: getWatchingItem } = useContinueWatching();
   
+  // Helper to get episode progress percentage
+  const getEpisodeProgress = useCallback((seasonNum: number, episodeNum: number): number => {
+    if (!id) return 0;
+    
+    // Find matching continue watching item for this show
+    const watchingItem = continueWatchingItems.find(
+      item => item.tmdbId === Number(id) && 
+              item.mediaType === 'tv' && 
+              item.season === seasonNum && 
+              item.episode === episodeNum
+    );
+    
+    if (!watchingItem) return 0;
+    
+    // Calculate progress from currentTime/duration
+    if (watchingItem.progress && watchingItem.progress > 0) {
+      return Math.min(watchingItem.progress, 100);
+    }
+    
+    if (watchingItem.currentTime && watchingItem.duration && watchingItem.duration > 0) {
+      return Math.min((watchingItem.currentTime / watchingItem.duration) * 100, 100);
+    }
+    
+    return 0;
+  }, [id, continueWatchingItems]);
+  
   const maturityRate = useMemo(() => getRandomNumber(20), []);
   const matchPercent = useMemo(() => getRandomNumber(100), []);
   
