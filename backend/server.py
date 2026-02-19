@@ -1393,7 +1393,7 @@ async def get_tmdb_trending(media_type: str = "all", page: int = 1, verify_vixsr
 
 @app.get("/api/public/tmdb/popular/{media_type}")
 async def get_tmdb_popular(media_type: str = "movie", page: int = 1, verify_vixsrc: bool = True):
-    """Get popular content directly from TMDB, filtered by vixsrc availability"""
+    """Get popular content directly from TMDB, filtered by vixsrc availability and NO ANIME"""
     endpoint = f"/{media_type}/popular"
     data = await fetch_tmdb_data(endpoint, {"page": page})
     
@@ -1402,6 +1402,10 @@ async def get_tmdb_popular(media_type: str = "movie", page: int = 1, verify_vixs
     
     items = []
     for item in data["results"]:
+        # ❌ SKIP ANIME CONTENT
+        if is_anime_content(item):
+            continue
+            
         tmdb_id = item.get("id")
         
         if verify_vixsrc:
@@ -1422,6 +1426,9 @@ async def get_tmdb_popular(media_type: str = "movie", page: int = 1, verify_vixs
             "genre_ids": item.get("genre_ids", []),
             "vixsrc_available": True
         })
+    
+    # ✅ SORT BY TMDB ID for deterministic order
+    items.sort(key=lambda x: x["tmdbId"])
     
     return {"items": items, "total": len(items), "page": page}
 
