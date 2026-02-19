@@ -45,6 +45,7 @@ import QualityChip from "src/components/QualityChip";
 import VideoJSPlayer, { VideoJSPlayerRef } from "src/components/watch/VideoJSPlayer";
 import { formatMinuteToReadable, getRandomNumber } from "src/utils/common";
 import { getMediaImageUrl } from "src/hooks/useCDNImage";
+import { useContinueWatching } from "src/hooks/useContinueWatching";
 
 // Backend API URL
 const API_URL = import.meta.env.VITE_BACKEND_URL || "";
