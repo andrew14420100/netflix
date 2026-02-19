@@ -6,7 +6,9 @@ export interface ContinueWatchingItem {
   title: string;
   backdrop_path: string;
   poster_path: string;
-  progress?: number; // 0-100
+  progress?: number; // 0-100 for UI
+  currentTime?: number; // seconds for video player
+  duration?: number; // total duration in seconds
   timestamp: number;
   episode?: number;
   season?: number;
@@ -58,6 +60,11 @@ export function useContinueWatching() {
     });
   };
 
+  // Get item (for resume playback)
+  const getItem = (tmdbId: number, mediaType: 'movie' | 'tv'): ContinueWatchingItem | undefined => {
+    return items.find(i => i.tmdbId === tmdbId && i.mediaType === mediaType);
+  };
+
   // Remove item
   const removeItem = (tmdbId: number, mediaType: 'movie' | 'tv') => {
     setItems(prevItems => {
@@ -97,6 +104,7 @@ export function useContinueWatching() {
     items,
     username,
     addItem,
+    getItem,
     removeItem,
     updateUsername,
     clearAll,
