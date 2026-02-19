@@ -1,7 +1,17 @@
 import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
+
+// Admin imports
+import AdminLayout from "./layouts/AdminLayout";
+import AdminLogin from "./pages/admin/Login";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminContents from "./pages/admin/Contents";
+import AdminHero from "./pages/admin/Hero";
+import AdminSections from "./pages/admin/Sections";
+import AdminLogs from "./pages/admin/Logs";
+import { Toaster } from "./components/ui/sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -21,18 +31,21 @@ const Home = () => {
   }, []);
 
   return (
-    <div>
-      <header className="App-header">
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-8">
+      <div className="text-center max-w-2xl">
+        <h1 className="text-5xl font-bold mb-4" style={{ fontFamily: 'Unbounded, sans-serif' }}>
+          <span className="text-[#E50914]">FLIX</span>CLONE
+        </h1>
+        <p className="text-zinc-400 text-lg mb-8">
+          Piattaforma streaming in costruzione
+        </p>
         <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/admin"
+          className="inline-flex items-center gap-2 bg-[#E50914] hover:bg-[#B20710] text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-lg shadow-red-900/30"
         >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
+          Accedi all'Admin Panel
         </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+      </div>
     </div>
   );
 };
@@ -42,11 +55,26 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
+          {/* Public route */}
+          <Route path="/" element={<Home />} />
+          
+          {/* Admin Login (separate from layout) */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          
+          {/* Admin Routes with Layout */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="contents" element={<AdminContents />} />
+            <Route path="hero" element={<AdminHero />} />
+            <Route path="sections" element={<AdminSections />} />
+            <Route path="logs" element={<AdminLogs />} />
           </Route>
+
+          {/* Catch all - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      <Toaster position="top-right" theme="dark" />
     </div>
   );
 }
