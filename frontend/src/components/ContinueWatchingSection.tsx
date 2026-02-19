@@ -33,22 +33,7 @@ export default function ContinueWatchingSection() {
 
   return (
     <Stack spacing={1} sx={{ mt: -2, mb: 3 }}>
-      {/* Username */}
-      <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-        <Typography
-          variant="h6"
-          sx={{
-            color: "text.primary",
-            fontWeight: 500,
-            fontSize: { xs: "0.95rem", sm: "1rem", md: "1.1rem" },
-            mb: 0,
-          }}
-        >
-          {username}
-        </Typography>
-      </Box>
-
-      {/* Continue Watching with custom grid */}
+      {/* Title: Username, continua a guardare: */}
       <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
         <Typography
           variant="h6"
@@ -59,7 +44,7 @@ export default function ContinueWatchingSection() {
             mb: 2,
           }}
         >
-          Continua a guardare:
+          {username}, continua a guardare:
         </Typography>
 
         {/* Grid of cards with progress */}
