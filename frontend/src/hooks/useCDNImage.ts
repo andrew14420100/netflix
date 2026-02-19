@@ -29,7 +29,8 @@ export function useCDNImage({
   useDetailBackdrop = false,
 }: UseCDNImageOptions): UseCDNImageReturn {
   const { data: configuration } = useGetConfigurationQuery(undefined);
-  const tmdbBaseUrl = configuration?.images.base_url || 'https://image.tmdb.org/t/p/';
+  // Force https for TMDB images to avoid Mixed Content warnings
+  const tmdbBaseUrl = (configuration?.images.base_url || 'https://image.tmdb.org/t/p/').replace('http://', 'https://');
 
   const hasCDN = useMemo(() => hasCDNMapping(tmdbId), [tmdbId]);
 
