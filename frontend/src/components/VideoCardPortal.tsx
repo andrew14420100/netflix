@@ -67,12 +67,26 @@ export default function VideoCardModal({
 
   return (
     <Card
+      data-portal-card="true"
       onPointerLeave={() => {
         setPortal(null, null);
+      }}
+      onPointerEnter={() => {
+        // Keep portal alive when hovering over it
       }}
       sx={{
         width: rect.width * 1.5,
         height: "100%",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
+        borderRadius: "8px",
+        overflow: "hidden",
+        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        pointerEvents: "auto", // ✅ Ensure portal can receive hover events
+        "&:hover": {
+          boxShadow: "0 12px 48px rgba(0, 0, 0, 0.8)",
+        },
+      }}
+    >
       }}
     >
       <div
