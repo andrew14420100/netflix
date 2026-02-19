@@ -1434,7 +1434,7 @@ async def get_tmdb_popular(media_type: str = "movie", page: int = 1, verify_vixs
 
 @app.get("/api/public/tmdb/top_rated/{media_type}")
 async def get_tmdb_top_rated(media_type: str = "movie", page: int = 1, verify_vixsrc: bool = True):
-    """Get top rated content directly from TMDB, filtered by vixsrc availability"""
+    """Get top rated content directly from TMDB, filtered by vixsrc availability and NO ANIME"""
     endpoint = f"/{media_type}/top_rated"
     data = await fetch_tmdb_data(endpoint, {"page": page})
     
@@ -1443,6 +1443,10 @@ async def get_tmdb_top_rated(media_type: str = "movie", page: int = 1, verify_vi
     
     items = []
     for item in data["results"]:
+        # ❌ SKIP ANIME CONTENT
+        if is_anime_content(item):
+            continue
+            
         tmdb_id = item.get("id")
         
         if verify_vixsrc:
@@ -1464,11 +1468,14 @@ async def get_tmdb_top_rated(media_type: str = "movie", page: int = 1, verify_vi
             "vixsrc_available": True
         })
     
+    # ✅ SORT BY TMDB ID for deterministic order
+    items.sort(key=lambda x: x["tmdbId"])
+    
     return {"items": items, "total": len(items), "page": page}
 
 @app.get("/api/public/tmdb/now_playing")
 async def get_tmdb_now_playing(page: int = 1, verify_vixsrc: bool = True):
-    """Get now playing movies from TMDB, filtered by vixsrc availability"""
+    """Get now playing movies from TMDB, filtered by vixsrc availability and NO ANIME"""
     data = await fetch_tmdb_data("/movie/now_playing", {"page": page})
     
     if not data or "results" not in data:
@@ -1476,6 +1483,10 @@ async def get_tmdb_now_playing(page: int = 1, verify_vixsrc: bool = True):
     
     items = []
     for item in data["results"]:
+        # ❌ SKIP ANIME CONTENT
+        if is_anime_content(item):
+            continue
+            
         tmdb_id = item.get("id")
         
         if verify_vixsrc:
@@ -1496,6 +1507,9 @@ async def get_tmdb_now_playing(page: int = 1, verify_vixsrc: bool = True):
             "genre_ids": item.get("genre_ids", []),
             "vixsrc_available": True
         })
+    
+    # ✅ SORT BY TMDB ID for deterministic order
+    items.sort(key=lambda x: x["tmdbId"])
     
     return {"items": items, "total": len(items), "page": page}
 
