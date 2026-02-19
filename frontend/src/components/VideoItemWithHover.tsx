@@ -35,7 +35,7 @@ export default function VideoItemWithHover({ video, mediaType }: VideoItemWithHo
     return `${configuration?.images.base_url || 'https://image.tmdb.org/t/p/'}w300${video.backdrop_path}`;
   }, [backdropUrl, configuration?.images.base_url, video.backdrop_path]);
 
-  // ✅ OPTIMIZED: Faster hover handling (reduced delay)
+  // ✅ FIXED: Simplified hover handling - no aggressive delays
   const handleHover = useCallback((hovered: boolean) => {
     // Clear any existing timeout
     if (hoverTimeoutRef.current) {
@@ -43,15 +43,14 @@ export default function VideoItemWithHover({ video, mediaType }: VideoItemWithHo
     }
 
     if (hovered) {
-      // ✅ Reduced delay from 100ms to 50ms for snappier feel
+      // ✅ Show portal after small delay for smooth entry
       hoverTimeoutRef.current = setTimeout(() => {
         setIsHovered(true);
-      }, 50);
+      }, 300); // Small delay to avoid flicker on fast mouse movement
     } else {
-      // ✅ Small delay on leave for smoother transition between cards
-      hoverTimeoutRef.current = setTimeout(() => {
-        setIsHovered(false);
-      }, 150);
+      // ✅ Hide immediately when mouse leaves
+      // The portal itself will handle keeping itself open if you hover over it
+      setIsHovered(false);
     }
   }, []);
 
@@ -59,8 +58,15 @@ export default function VideoItemWithHover({ video, mediaType }: VideoItemWithHo
     if (isHovered && elementRef.current) {
       setPortal(elementRef.current, video, mediaType);
     } else if (!isHovered) {
-      // Clear portal immediately when not hovered
-      setPortal(null, null);
+      // Only clear portal if we're truly not hovered
+      // Small delay to allow transition to portal
+      const clearTimeout = setTimeout(() => {
+        if (!isHovered) {
+          setPortal(null, null);
+        }
+      }, 50);
+      
+      return () => clearTimeout(clearTimeout);
     }
   }, [isHovered, video, setPortal, mediaType]);
 
@@ -70,7 +76,6 @@ export default function VideoItemWithHover({ video, mediaType }: VideoItemWithHo
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
       }
-      // Clear portal on unmount
       setPortal(null, null);
     };
   }, [setPortal]);
