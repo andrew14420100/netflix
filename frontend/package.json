@@ -15,6 +15,7 @@
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.10.0",
     "@reduxjs/toolkit": "^1.8.3",
+    "@tanstack/react-query": "^5.90.21",
     "autoprefixer": "^10.4.24",
     "framer-motion": "^7.1.0",
     "postcss": "^8.5.6",
