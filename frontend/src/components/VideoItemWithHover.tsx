@@ -60,13 +60,13 @@ export default function VideoItemWithHover({ video, mediaType }: VideoItemWithHo
     } else if (!isHovered) {
       // Only clear portal if we're truly not hovered
       // Small delay to allow transition to portal
-      const clearTimeout = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         if (!isHovered) {
           setPortal(null, null);
         }
       }, 50);
       
-      return () => clearTimeout(clearTimeout);
+      return () => clearTimeout(timeoutId);
     }
   }, [isHovered, video, setPortal, mediaType]);
 
