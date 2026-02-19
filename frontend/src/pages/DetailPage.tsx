@@ -111,6 +111,9 @@ export function Component() {
   
   const [isLoadingEpisodes, setIsLoadingEpisodes] = useState(false);
   
+  // Continue watching data for episode progress bars
+  const { items: continueWatchingItems, getItem: getWatchingItem } = useContinueWatching();
+  
   const maturityRate = useMemo(() => getRandomNumber(20), []);
   const matchPercent = useMemo(() => getRandomNumber(100), []);
   
