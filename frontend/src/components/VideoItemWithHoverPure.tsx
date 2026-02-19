@@ -9,6 +9,7 @@ type VideoItemWithHoverPureType = {
 class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
   private containerRef: HTMLDivElement | null = null;
   private imageRef: HTMLImageElement | null = null;
+  private isHovered: boolean = false;
 
   componentWillUnmount() {
     // Cleanup animations
@@ -19,6 +20,7 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
   }
 
   handleMouseEnter = () => {
+    this.isHovered = true;
     this.props.handleHover(true);
     
     if (this.containerRef) {
@@ -39,7 +41,21 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
     }
   };
 
-  handleMouseLeave = () => {
+  handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    // ✅ IMPORTANT: Check if we're actually leaving to another element
+    // If the portal is appearing, we DON'T want to trigger leave
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    
+    // If we're moving to the portal or any child of the portal container, don't hide
+    if (relatedTarget) {
+      const isMovingToPortal = relatedTarget.closest('[data-portal-card]') !== null;
+      if (isMovingToPortal) {
+        // Don't trigger leave - we're entering the portal
+        return;
+      }
+    }
+    
+    this.isHovered = false;
     this.props.handleHover(false);
     
     if (this.containerRef) {
@@ -48,7 +64,7 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
       
       // Delay z-index change until animation completes
       setTimeout(() => {
-        if (this.containerRef) {
+        if (this.containerRef && !this.isHovered) {
           this.containerRef.style.zIndex = "1";
         }
       }, 300);
@@ -85,6 +101,8 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
           transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.3s",
           zIndex: 1,
           willChange: "transform",
+          // ✅ Ensure pointer events work correctly
+          pointerEvents: "auto",
         }}
       >
         <img
@@ -103,6 +121,7 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
             backfaceVisibility: "hidden",
             transform: "translateZ(0)",
+            pointerEvents: "none", // Image shouldn't block events
           }}
         />
       </div>
