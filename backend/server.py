@@ -1515,7 +1515,7 @@ async def get_tmdb_now_playing(page: int = 1, verify_vixsrc: bool = True):
 
 @app.get("/api/public/tmdb/on_the_air")
 async def get_tmdb_on_the_air(page: int = 1, verify_vixsrc: bool = True):
-    """Get TV shows on the air from TMDB, filtered by vixsrc availability"""
+    """Get TV shows on the air from TMDB, filtered by vixsrc availability and NO ANIME"""
     data = await fetch_tmdb_data("/tv/on_the_air", {"page": page})
     
     if not data or "results" not in data:
@@ -1523,6 +1523,10 @@ async def get_tmdb_on_the_air(page: int = 1, verify_vixsrc: bool = True):
     
     items = []
     for item in data["results"]:
+        # ❌ SKIP ANIME CONTENT
+        if is_anime_content(item):
+            continue
+            
         tmdb_id = item.get("id")
         
         if verify_vixsrc:
@@ -1543,6 +1547,9 @@ async def get_tmdb_on_the_air(page: int = 1, verify_vixsrc: bool = True):
             "genre_ids": item.get("genre_ids", []),
             "vixsrc_available": True
         })
+    
+    # ✅ SORT BY TMDB ID for deterministic order
+    items.sort(key=lambda x: x["tmdbId"])
     
     return {"items": items, "total": len(items), "page": page}
 
