@@ -70,6 +70,9 @@ export function getMediaImageUrl(
   tmdbBaseUrl: string = 'https://image.tmdb.org/t/p/',
   size: string = 'w500'
 ): string {
+  // Force https for TMDB images
+  const secureBaseUrl = tmdbBaseUrl.replace('http://', 'https://');
+  
   // Prima controlla se c'è un mapping CDN
   const cdnUrl = getCDNImageUrl(tmdbId, type);
   if (cdnUrl) {
@@ -78,7 +81,7 @@ export function getMediaImageUrl(
   
   // Fallback a TMDB
   if (tmdbPath) {
-    return `${tmdbBaseUrl}${size}${tmdbPath}`;
+    return `${secureBaseUrl}${size}${tmdbPath}`;
   }
   
   return '/placeholder.jpg';
