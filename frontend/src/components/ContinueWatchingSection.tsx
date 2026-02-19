@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import { useContinueWatching } from "src/hooks/useContinueWatching";
 import { Movie } from "src/types/Movie";
 import ContinueWatchingCard from "./ContinueWatchingCard";
+import { ARROW_MAX_WIDTH } from "src/constant";
 
 export default function ContinueWatchingSection() {
   const { items, username } = useContinueWatching();
@@ -32,46 +33,58 @@ export default function ContinueWatchingSection() {
   }
 
   return (
-    <Stack spacing={1} sx={{ mt: -2, mb: 3 }}>
-      {/* Title: Username, continua a guardare: */}
-      <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+    <Stack spacing={2} sx={{ overflow: "hidden", position: "relative" }}>
+      {/* Title matching other sections */}
+      <Box sx={{ pl: { xs: "30px", sm: `${ARROW_MAX_WIDTH}px` } }}>
         <Typography
           variant="h6"
           sx={{
             color: "text.primary",
-            fontWeight: 600,
-            fontSize: { xs: "1.2rem", sm: "1.3rem", md: "1.4rem" },
-            mb: 2,
+            fontWeight: 700,
+            display: "inline-block",
           }}
         >
           {username}, continua a guardare:
         </Typography>
+      </Box>
 
-        {/* Grid of cards with progress */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: 'repeat(2, 1fr)',
-              sm: 'repeat(3, 1fr)',
-              md: 'repeat(4, 1fr)',
-              lg: 'repeat(5, 1fr)',
-              xl: 'repeat(6, 1fr)',
-            },
-            gap: { xs: 1, sm: 1.5, md: 2 },
-          }}
-        >
-          {movies.slice(0, 12).map((movie, index) => {
-            const item = items[index];
-            return (
+      {/* Cards row - matching SlickSlider layout */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          pl: { xs: "30px", sm: `${ARROW_MAX_WIDTH}px` },
+          pr: { xs: "30px", sm: `${ARROW_MAX_WIDTH}px` },
+          gap: { xs: 0.5, sm: 1 },
+          // Hide scrollbar
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
+        {movies.slice(0, 12).map((movie, index) => {
+          const item = items[index];
+          return (
+            <Box
+              key={`${movie.id}-${movie.media_type}`}
+              sx={{
+                flex: '0 0 auto',
+                width: {
+                  xs: 'calc(50% - 8px)',
+                  sm: 'calc(33.333% - 8px)',
+                  md: 'calc(25% - 8px)',
+                  lg: 'calc(20% - 8px)',
+                  xl: 'calc(16.666% - 8px)',
+                },
+              }}
+            >
               <ContinueWatchingCard
-                key={`${movie.id}-${movie.media_type}`}
                 video={movie}
                 item={item}
               />
-            );
-          })}
-        </Box>
+            </Box>
+          );
+        })}
       </Box>
     </Stack>
   );
