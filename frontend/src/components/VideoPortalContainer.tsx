@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { motion } from "framer-motion";
+import { useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Portal from "@mui/material/Portal";
 
 import VideoCardPortal from "./VideoCardPortal";
@@ -20,6 +20,7 @@ export default function VideoPortalContainer() {
   let isFirstElement = false;
   let isLastElement = false;
   let variant = varZoomIn;
+  
   if (hasToRender) {
     const parentElement = anchorElement.closest(".slick-active");
     const nextSiblingOfParentElement = parentElement?.nextElementSibling;
@@ -36,26 +37,43 @@ export default function VideoPortalContainer() {
     }
   }
 
+  // ✅ Scroll prevention when portal is open
+  useEffect(() => {
+    if (hasToRender) {
+      const originalOverflow = document.body.style.overflow;
+      // Don't actually prevent scroll, just prevent unwanted effects
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [hasToRender]);
+
   return (
     <>
-      {hasToRender && (
-        <Portal container={container.current}>
-          <VideoCardPortal
-            video={miniModalMediaData}
-            anchorElement={anchorElement}
-            mediaType={mediaType}
-          />
-        </Portal>
-      )}
+      <AnimatePresence mode="wait">
+        {hasToRender && (
+          <Portal container={container.current}>
+            <VideoCardPortal
+              video={miniModalMediaData}
+              anchorElement={anchorElement}
+              mediaType={mediaType}
+            />
+          </Portal>
+        )}
+      </AnimatePresence>
       <MotionContainer open={hasToRender} initial="initial">
         <motion.div
           ref={container}
           variants={variant}
           style={{
-            zIndex: 1,
+            // ✅ High z-index to appear above everything
+            zIndex: 9999,
             position: "absolute",
             display: "inline-block",
+            // ✅ Smooth transition
+            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             ...(rect && {
+              // ✅ Better positioning - card grows upward
               top: rect.top + window.pageYOffset - 0.75 * rect.height,
               ...(isLastElement
                 ? {
