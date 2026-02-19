@@ -93,6 +93,7 @@ export function Component() {
   return (
     <Stack spacing={2} data-testid="home-page-loading">
       <HeroSection mediaType={currentMediaType} />
+      <ContinueWatchingSection />
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
         <Typography color="grey.500">Caricamento contenuti...</Typography>
       </Box>
