@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Stack from "@mui/material/Stack";
 import Card from "@mui/material/Card";
@@ -28,7 +28,6 @@ import {
   useGetMediaImagesQuery,
   useGetAllVideosQuery,
 } from "src/store/slices/discover";
-import VideoJSPlayer, { VideoJSPlayerRef } from "./watch/VideoJSPlayer";
 
 interface VideoCardModalProps {
   video: Movie;
@@ -76,7 +75,6 @@ export default function VideoCardModal({
   const { data: genres } = useGetGenresQuery(mediaType);
   const setPortal = usePortal();
   const rect = anchorElement.getBoundingClientRect();
-  const playerRef = useRef<VideoJSPlayerRef | null>(null);
   const [muted, setMuted] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
 
@@ -118,7 +116,7 @@ export default function VideoCardModal({
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowVideo(true);
-    }, 6000); // 6 seconds!
+    }, 6000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -137,14 +135,6 @@ export default function VideoCardModal({
     }
   };
 
-  const handleMuteToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (playerRef.current) {
-      const newMuted = playerRef.current.toggleMute();
-      setMuted(newMuted);
-    }
-  };
-
   const imageUrl = getMediaImageUrl(
     video.id,
     'backdrop',
@@ -152,6 +142,11 @@ export default function VideoCardModal({
     configuration?.images.base_url,
     'w780'
   );
+
+  // ✅ Build YouTube embed URL with all parameters to hide controls and info
+  const youtubeEmbedUrl = trailerKey 
+    ? `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&loop=1&playlist=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&playsinline=1`
+    : null;
 
   return (
     <Card
@@ -203,8 +198,8 @@ export default function VideoCardModal({
           alt={video.title}
         />
 
-        {/* ✅ Trailer Video - Starts after 6 seconds */}
-        {trailerKey && (
+        {/* ✅ YouTube Trailer - Direct iframe embed */}
+        {youtubeEmbedUrl && showVideo && (
           <Box
             sx={{
               position: "absolute",
@@ -217,24 +212,18 @@ export default function VideoCardModal({
               transition: "opacity 0.8s ease-in-out",
             }}
           >
-            <VideoJSPlayer
-              options={{
-                loop: true,
-                muted: true,
-                autoplay: showVideo, // Only autoplay when visible
-                controls: false,
-                responsive: true,
-                fluid: true,
-                techOrder: ["youtube"],
-                sources: [
-                  {
-                    type: "video/youtube",
-                    // ✅ YouTube parameters to hide ALL info and controls
-                    src: `https://www.youtube.com/watch?v=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0`,
-                  },
-                ],
+            <iframe
+              src={youtubeEmbedUrl}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                border: "none",
               }}
-              ref={playerRef}
+              allow="autoplay; encrypted-media"
+              title="Trailer"
             />
             {/* ✅ COMPLETE OVERLAY - Blocks ALL interactions with video */}
             <Box
@@ -247,7 +236,7 @@ export default function VideoCardModal({
                 zIndex: 100,
                 backgroundColor: 'transparent',
                 cursor: 'pointer',
-                pointerEvents: 'all', // Block all mouse events to video
+                pointerEvents: 'all',
               }}
               onClick={handleNavigateToDetail}
             />
@@ -293,7 +282,7 @@ export default function VideoCardModal({
           </Box>
         )}
 
-        {/* Audio toggle button */}
+        {/* Audio indicator (muted by default in iframe) */}
         <Box
           sx={{
             position: "absolute",
@@ -302,12 +291,20 @@ export default function VideoCardModal({
             zIndex: 4,
           }}
         >
-          <NetflixIconButton
-            size="small"
-            onClick={handleMuteToggle}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: '1px solid rgba(255,255,255,0.5)',
+              bgcolor: 'rgba(0,0,0,0.5)',
+            }}
           >
-            {muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
-          </NetflixIconButton>
+            <VolumeOffIcon sx={{ fontSize: 18, color: 'white' }} />
+          </Box>
         </Box>
       </div>
 
