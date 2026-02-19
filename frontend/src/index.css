@@ -160,7 +160,7 @@ code {
     min-height: 56.25vw !important;
 }
 
-/* ✅ SMOOTH CARD ANIMATIONS - Like Streaming Community */
+/* ✅ SMOOTH CARD ANIMATIONS - Subtle effect */
 .slick-slider .slick-slide {
     position: relative;
     transition: z-index 0s 0.3s;
