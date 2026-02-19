@@ -13,6 +13,8 @@ export function Component() {
   // Per le serie TV, ottieni stagione ed episodio dai query params
   const season = searchParams.get("s") || "1";
   const episode = searchParams.get("e") || "1";
+  // Resume timestamp parameter
+  const startTime = searchParams.get("t");
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,11 +23,25 @@ export function Component() {
   const getVixSrcUrl = () => {
     if (!id) return null;
     
+    let baseUrl = '';
     if (mediaType === "tv") {
-      return `https://vixsrc.to/tv/${id}/${season}/${episode}`;
+      baseUrl = `https://vixsrc.to/tv/${id}/${season}/${episode}`;
     } else {
-      return `https://vixsrc.to/movie/${id}`;
+      baseUrl = `https://vixsrc.to/movie/${id}`;
     }
+    
+    // Add resume timestamp if available
+    const params = new URLSearchParams();
+    params.append('primaryColor', 'E50914');
+    params.append('secondaryColor', '8B0000');
+    params.append('autoplay', 'true');
+    params.append('lang', 'it');
+    
+    if (startTime) {
+      params.append('startAt', startTime);
+    }
+    
+    return `${baseUrl}?${params.toString()}`;
   };
 
   const vixSrcUrl = getVixSrcUrl();
