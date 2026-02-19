@@ -24,9 +24,9 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
     this.props.handleHover(true);
     
     if (this.containerRef) {
-      // ✅ Transition PIÙ LENTA: 0.6s invece di 0.3s
+      // ✅ MOLTO PIÙ VELOCE: 0.25s invece di 0.6s
       this.containerRef.style.zIndex = "9999";
-      this.containerRef.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
+      this.containerRef.style.transition = "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)";
       
       requestAnimationFrame(() => {
         if (this.containerRef) {
