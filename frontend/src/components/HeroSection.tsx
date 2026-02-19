@@ -20,42 +20,15 @@ import {
   useGetAllVideosQuery,
 } from "src/store/slices/discover";
 import VideoJSPlayer, { VideoJSPlayerRef } from "./watch/VideoJSPlayer";
+import { useHeroData } from "src/hooks/useHeroData";
 
 // Default fallback
 const DEFAULT_FEATURED_ID = 202208;
 const DEFAULT_FEATURED_TYPE = MEDIA_TYPE.Tv;
 
-interface HeroSettings {
-  contentId: string;
-  customTitle: string | null;
-  customDescription: string | null;
-  customBackdrop: string | null;
-  seasonLabel: string | null;
-}
-
 interface TopTrailerProps {
   mediaType: MEDIA_TYPE;
 }
-
-// ✅ OPTIMIZED: Fetch hero settings from backend with proper caching (NO cache-busting)
-const fetchHeroSettings = async (): Promise<{ hero: HeroSettings | null; type: 'movie' | 'tv' }> => {
-  try {
-    // Let browser cache work - improves performance on navigation back
-    const response = await fetch(`/api/public/hero`, {
-      cache: 'default', // Browser will cache for better performance
-    });
-    if (!response.ok) return { hero: null, type: 'tv' };
-    const data = await response.json();
-    
-    if (data && data.contentId) {
-      // Use mediaType directly from hero settings (no extra API call needed)
-      return { hero: data, type: data.mediaType || 'tv' };
-    }
-    return { hero: null, type: 'tv' };
-  } catch {
-    return { hero: null, type: 'tv' };
-  }
-};
 
 // Helper function to get Italian trailer key with priority
 const getItalianTrailerKey = (detailVideos: any[], allVideos: any[]): string | null => {
@@ -90,33 +63,28 @@ const getItalianTrailerKey = (detailVideos: any[], allVideos: any[]): string | n
 export default function TopTrailer({ mediaType }: TopTrailerProps) {
   const navigate = useNavigate();
   
-  // State for dynamic hero
-  const [heroSettings, setHeroSettings] = useState<HeroSettings | null>(null);
-  const [heroType, setHeroType] = useState<'movie' | 'tv'>('tv');
-  const [heroLoaded, setHeroLoaded] = useState(false);
+  // ✅ Use React Query hook for cached hero data
+  const { data: heroSettings, isLoading: heroLoading } = useHeroData();
   
-  // Load hero settings from backend
-  useEffect(() => {
-    const loadHero = async () => {
-      const { hero, type } = await fetchHeroSettings();
-      setHeroSettings(hero);
-      setHeroType(type);
-      setHeroLoaded(true);
-    };
-    loadHero();
-  }, []);
+  // Determine featured ID and type from cached data
+  const featuredId = useMemo(() => {
+    if (heroSettings?.contentId) {
+      return parseInt(heroSettings.contentId);
+    }
+    return DEFAULT_FEATURED_ID;
+  }, [heroSettings]);
   
-  // Determine featured ID and type - only use loaded values
-  const featuredId = heroLoaded && heroSettings?.contentId 
-    ? parseInt(heroSettings.contentId) 
-    : (heroLoaded ? DEFAULT_FEATURED_ID : 0);
-  const featuredMediaType = heroLoaded && heroSettings?.contentId 
-    ? (heroType === 'movie' ? MEDIA_TYPE.Movie : MEDIA_TYPE.Tv)
-    : DEFAULT_FEATURED_TYPE;
+  const featuredMediaType = useMemo(() => {
+    if (heroSettings?.mediaType) {
+      return heroSettings.mediaType === 'movie' ? MEDIA_TYPE.Movie : MEDIA_TYPE.Tv;
+    }
+    return DEFAULT_FEATURED_TYPE;
+  }, [heroSettings]);
   
-  // Skip queries until hero is loaded and we have a valid ID
-  const skipQueries = !heroLoaded || featuredId === 0;
+  // Skip TMDB queries only while loading hero
+  const skipQueries = heroLoading || !featuredId;
   
+  // ✅ RTK Query will also cache these calls
   const { data: detailData } = useGetAppendedVideosQuery({
     mediaType: featuredMediaType,
     id: featuredId,
@@ -139,14 +107,14 @@ export default function TopTrailer({ mediaType }: TopTrailerProps) {
   const playerRef = useRef<VideoJSPlayerRef | null>(null);
   const isOffset = useOffSetTop(window.innerWidth * 0.5625);
   
-  const maturityRate = useMemo(() => getRandomNumber(20), []);
+  // Memoize random value to prevent changes on re-render
+  const maturityRate = useMemo(() => getRandomNumber(20), [featuredId]);
   
   const trailerKey = useMemo(() => {
-    const key = getItalianTrailerKey(
+    return getItalianTrailerKey(
       detailData?.videos?.results || [],
       allVideosData?.results || []
     );
-    return key;
   }, [detailData?.videos?.results, allVideosData?.results]);
   
   // Get logo from TMDB
@@ -183,7 +151,7 @@ export default function TopTrailer({ mediaType }: TopTrailerProps) {
       setShowVideo(true);
     }, 6000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [featuredId]); // Reset when content changes
 
   // Handle video ending - fade back to image
   const handleVideoEnded = useCallback(() => {
@@ -219,7 +187,8 @@ export default function TopTrailer({ mediaType }: TopTrailerProps) {
     }
   }, []);
 
-  if (!heroLoaded) {
+  // Show loading state only on initial load
+  if (heroLoading && !heroSettings) {
     return (
       <Box sx={{ position: "relative", zIndex: 1, height: "56.25vw", bgcolor: '#141414' }} />
     );
