@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Movie } from "src/types/Movie";
 import { usePortal } from "src/providers/PortalProvider";
 import { useGetConfigurationQuery } from "src/store/slices/configuration";
@@ -7,16 +7,18 @@ import VideoItemWithHoverPure from "./VideoItemWithHoverPure";
 
 interface VideoItemWithHoverProps {
   video: Movie;
+  mediaType?: any;
 }
 
-export default function VideoItemWithHover({ video }: VideoItemWithHoverProps) {
+export default function VideoItemWithHover({ video, mediaType }: VideoItemWithHoverProps) {
   const setPortal = usePortal();
   const elementRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: configuration } = useGetConfigurationQuery(undefined);
 
-  // ✅ FIX: Use CDN image system to get correct image immediately
+  // ✅ Use CDN image system to get correct image immediately
   const { backdropUrl } = useCDNImage({
     tmdbId: video.id,
     posterPath: video.poster_path,
@@ -33,16 +35,43 @@ export default function VideoItemWithHover({ video }: VideoItemWithHoverProps) {
     return `${configuration?.images.base_url || 'https://image.tmdb.org/t/p/'}w300${video.backdrop_path}`;
   }, [backdropUrl, configuration?.images.base_url, video.backdrop_path]);
 
+  // ✅ Smooth hover handling with slight delay
+  const handleHover = useCallback((hovered: boolean) => {
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    if (hovered) {
+      // Small delay before showing portal for smoother transition
+      hoverTimeoutRef.current = setTimeout(() => {
+        setIsHovered(true);
+      }, 100);
+    } else {
+      // Immediate hide for snappy response
+      setIsHovered(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (isHovered) {
       setPortal(elementRef.current, video);
     }
-  }, [isHovered]);
+  }, [isHovered, video, setPortal]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <VideoItemWithHoverPure
       ref={elementRef}
-      handleHover={setIsHovered}
+      handleHover={handleHover}
       src={imageUrl}
     />
   );
