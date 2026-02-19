@@ -130,6 +130,18 @@ export default function VideoCardModal({
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setPortal(null, null);
+    
+    // ✅ Add to Continue Watching
+    addItem({
+      tmdbId: video.id,
+      mediaType: mediaType === MEDIA_TYPE.Tv ? 'tv' : 'movie',
+      title: video.title || video.name || '',
+      backdrop_path: video.backdrop_path || '',
+      poster_path: video.poster_path || video.backdrop_path || '',
+      progress: 0,
+      ...(mediaType === MEDIA_TYPE.Tv && { season: 1, episode: 1 }),
+    });
+    
     if (mediaType === MEDIA_TYPE.Tv) {
       navigate(`/${MAIN_PATH.watch}/tv/${video.id}?s=1&e=1`);
     } else {
