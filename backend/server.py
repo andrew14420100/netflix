@@ -1383,6 +1383,8 @@ async def get_tmdb_trending(media_type: str = "all", page: int = 1, verify_vixsr
             "vote_average": item.get("vote_average", 0),
             "popularity": item.get("popularity", 0),
             "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
             "vixsrc_available": True
         })
     
@@ -1424,6 +1426,8 @@ async def get_tmdb_popular(media_type: str = "movie", page: int = 1, verify_vixs
             "vote_average": item.get("vote_average", 0),
             "popularity": item.get("popularity", 0),
             "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
             "vixsrc_available": True
         })
     
@@ -1465,6 +1469,8 @@ async def get_tmdb_top_rated(media_type: str = "movie", page: int = 1, verify_vi
             "vote_average": item.get("vote_average", 0),
             "popularity": item.get("popularity", 0),
             "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
             "vixsrc_available": True
         })
     
@@ -1505,6 +1511,8 @@ async def get_tmdb_now_playing(page: int = 1, verify_vixsrc: bool = True):
             "vote_average": item.get("vote_average", 0),
             "popularity": item.get("popularity", 0),
             "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
             "vixsrc_available": True
         })
     
@@ -1545,6 +1553,8 @@ async def get_tmdb_on_the_air(page: int = 1, verify_vixsrc: bool = True):
             "vote_average": item.get("vote_average", 0),
             "popularity": item.get("popularity", 0),
             "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
             "vixsrc_available": True
         })
     
@@ -1585,6 +1595,10 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
                 "vote_average": item.get("vote_average", 0),
                 "popularity": item.get("popularity", 0),
                 "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
+                "original_language": item.get("original_language"),
+                "origin_country": item.get("origin_country", []),
                 "_section": "trending",
                 "vixsrc_available": True
             })
@@ -1615,6 +1629,10 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
                 "vote_average": item.get("vote_average", 0),
                 "popularity": item.get("popularity", 0),
                 "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
+                "original_language": item.get("original_language"),
+                "origin_country": item.get("origin_country", []),
                 "_section": "popular_movies",
                 "vixsrc_available": True
             })
@@ -1645,6 +1663,10 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
                 "vote_average": item.get("vote_average", 0),
                 "popularity": item.get("popularity", 0),
                 "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
+                "original_language": item.get("original_language"),
+                "origin_country": item.get("origin_country", []),
                 "_section": "popular_tv",
                 "vixsrc_available": True
             })
@@ -1675,6 +1697,10 @@ async def get_home_contents(limit: int = 50, verify_vixsrc: bool = True):
                 "vote_average": item.get("vote_average", 0),
                 "popularity": item.get("popularity", 0),
                 "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
+                "original_language": item.get("original_language"),
+                "origin_country": item.get("origin_country", []),
                 "_section": "top_rated",
                 "vixsrc_available": True
             })
@@ -1749,6 +1775,8 @@ async def get_all_contents(
                 "vote_average": item.get("vote_average", 0),
                 "popularity": item.get("popularity", 0),
                 "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
                 "vixsrc_available": True
             })
     
@@ -1941,6 +1969,8 @@ async def get_sections_with_content():
                 "vote_average": item.get("vote_average", 0),
                 "popularity": item.get("popularity", 0),
                 "genre_ids": item.get("genre_ids", []),
+            "original_language": item.get("original_language"),
+            "origin_country": item.get("origin_country", []),
                 "vixsrc_available": True
             })
             
