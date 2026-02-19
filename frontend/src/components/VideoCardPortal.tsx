@@ -143,10 +143,13 @@ export default function VideoCardModal({
     'w780'
   );
 
-  // ✅ Build YouTube embed URL with all parameters to hide controls and info
-  const youtubeEmbedUrl = trailerKey 
-    ? `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&loop=1&playlist=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&playsinline=1`
-    : null;
+  // ✅ Build YouTube embed URL with mute parameter
+  const youtubeEmbedUrl = useMemo(() => {
+    if (!trailerKey) return null;
+    
+    const muteParam = muted ? '1' : '0';
+    return `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${muteParam}&loop=1&playlist=${trailerKey}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&playsinline=1`;
+  }, [trailerKey, muted]);
 
   return (
     <Card
