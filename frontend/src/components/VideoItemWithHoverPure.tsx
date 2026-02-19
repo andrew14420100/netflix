@@ -24,33 +24,30 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
     this.props.handleHover(true);
     
     if (this.containerRef) {
-      // ✅ Immediate z-index change
+      // ✅ MOLTO PIÙ PICCOLO: Solo 1.05x per effetto subtle
       this.containerRef.style.zIndex = "9999";
       this.containerRef.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
       
-      // Small delay for smooth effect
       requestAnimationFrame(() => {
         if (this.containerRef) {
-          this.containerRef.style.transform = "scale(1.5)";
+          this.containerRef.style.transform = "scale(1.05)"; // 1.5x → 1.05x
         }
       });
     }
     
     if (this.imageRef) {
-      this.imageRef.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.7)";
+      this.imageRef.style.boxShadow = "0 8px 24px rgba(0, 0, 0, 0.6)";
     }
   };
 
   handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    // ✅ IMPORTANT: Check if we're actually leaving to another element
-    // If the portal is appearing, we DON'T want to trigger leave
+    // Check if we're actually leaving to another element
     const relatedTarget = e.relatedTarget as HTMLElement;
     
-    // If we're moving to the portal or any child of the portal container, don't hide
+    // If we're moving to the portal, don't hide
     if (relatedTarget) {
       const isMovingToPortal = relatedTarget.closest('[data-portal-card]') !== null;
       if (isMovingToPortal) {
-        // Don't trigger leave - we're entering the portal
         return;
       }
     }
@@ -62,7 +59,6 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
       this.containerRef.style.transform = "scale(1)";
       this.containerRef.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.3s";
       
-      // Delay z-index change until animation completes
       setTimeout(() => {
         if (this.containerRef && !this.isHovered) {
           this.containerRef.style.zIndex = "1";
@@ -92,7 +88,7 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
         onMouseLeave={this.handleMouseLeave}
         style={{
           cursor: "pointer",
-          borderRadius: "6px",
+          borderRadius: "4px",
           width: "100%",
           position: "relative",
           paddingTop: "calc(9 / 16 * 100%)",
@@ -101,7 +97,6 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
           transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.3s",
           zIndex: 1,
           willChange: "transform",
-          // ✅ Ensure pointer events work correctly
           pointerEvents: "auto",
         }}
       >
@@ -116,12 +111,12 @@ class VideoItemWithHoverPure extends PureComponent<VideoItemWithHoverPureType> {
             height: "100%",
             objectFit: "cover",
             position: "absolute",
-            borderRadius: "6px",
+            borderRadius: "4px",
             transition: "box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
             backfaceVisibility: "hidden",
             transform: "translateZ(0)",
-            pointerEvents: "none", // Image shouldn't block events
+            pointerEvents: "none",
           }}
         />
       </div>
