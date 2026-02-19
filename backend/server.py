@@ -181,6 +181,30 @@ def log_admin_action(action: str, content_id: Optional[str] = None, metadata: Op
         "metadata": metadata or {}
     })
 
+# Anime genre IDs to exclude (Animation genre often contains anime)
+# We exclude content that is primarily Japanese animation
+ANIME_GENRE_ID = 16  # Animation genre
+EXCLUDED_ORIGIN_COUNTRIES = ["JP"]  # Japan
+
+def is_anime_content(item: dict) -> bool:
+    """
+    Check if content is anime based on:
+    - Genre ID 16 (Animation) + origin country JP
+    - Original language 'ja' (Japanese) + Animation genre
+    """
+    genre_ids = item.get("genre_ids", [])
+    origin_country = item.get("origin_country", [])
+    original_language = item.get("original_language", "")
+    
+    # If it has Animation genre AND is from Japan, likely anime
+    if ANIME_GENRE_ID in genre_ids:
+        if any(country in EXCLUDED_ORIGIN_COUNTRIES for country in origin_country):
+            return True
+        if original_language == "ja":
+            return True
+    
+    return False
+
 async def fetch_tmdb_data(endpoint: str, params: dict = None) -> dict:
     """Fetch data from TMDB API"""
     if params is None:
