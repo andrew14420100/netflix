@@ -3,9 +3,31 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { useContinueWatching } from "src/hooks/useContinueWatching";
+import { MEDIA_TYPE } from "src/types/Common";
+import { Movie } from "src/types/Movie";
+import VideoItemWithHover from "./VideoItemWithHover";
+import { useGetConfigurationQuery } from "src/store/slices/configuration";
 
 export default function ContinueWatchingSection() {
   const { items, username } = useContinueWatching();
+  const { data: configuration } = useGetConfigurationQuery(undefined);
+
+  // Convert ContinueWatchingItem to Movie format
+  const movies = useMemo((): Movie[] => {
+    return items.map(item => ({
+      id: item.tmdbId,
+      title: item.title,
+      name: item.title,
+      backdrop_path: item.backdrop_path,
+      poster_path: item.poster_path,
+      media_type: item.mediaType,
+      genre_ids: [],
+      vote_average: 0,
+      overview: '',
+      release_date: '',
+      adult: false,
+    } as Movie));
+  }, [items]);
 
   // Don't render if no items
   if (items.length === 0) {
@@ -13,94 +35,85 @@ export default function ContinueWatchingSection() {
   }
 
   return (
-    <Stack spacing={2} sx={{ px: { xs: 2, sm: 3, md: 4 }, mt: -2, mb: 2 }}>
+    <Stack spacing={1} sx={{ mt: -2, mb: 3 }}>
       {/* Username */}
-      <Typography
-        variant="h6"
-        sx={{
-          color: "text.primary",
-          fontWeight: 500,
-          fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
-        }}
-      >
-        {username}
-      </Typography>
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography
+          variant="h6"
+          sx={{
+            color: "text.primary",
+            fontWeight: 500,
+            fontSize: { xs: "0.95rem", sm: "1rem", md: "1.1rem" },
+            mb: 0,
+          }}
+        >
+          {username}
+        </Typography>
+      </Box>
 
-      {/* Continue Watching Title */}
-      <Typography
-        variant="h5"
-        sx={{
-          color: "text.primary",
-          fontWeight: 600,
-          fontSize: { xs: "1.2rem", sm: "1.3rem", md: "1.4rem" },
-        }}
-      >
-        Continua a guardare
-      </Typography>
+      {/* Continue Watching with custom grid */}
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography
+          variant="h6"
+          sx={{
+            color: "text.primary",
+            fontWeight: 600,
+            fontSize: { xs: "1.2rem", sm: "1.3rem", md: "1.4rem" },
+            mb: 2,
+          }}
+        >
+          Continua a guardare:
+        </Typography>
 
-      {/* Simple grid of items (no slider for now) */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'repeat(2, 1fr)',
-            sm: 'repeat(3, 1fr)',
-            md: 'repeat(4, 1fr)',
-            lg: 'repeat(5, 1fr)',
-          },
-          gap: 1,
-        }}
-      >
-        {items.slice(0, 10).map((item) => (
-          <Box
-            key={`${item.tmdbId}-${item.mediaType}`}
-            sx={{
-              position: 'relative',
-              paddingTop: 'calc(9/16 * 100%)',
-              borderRadius: 1,
-              overflow: 'hidden',
-              cursor: 'pointer',
-              '&:hover': {
-                transform: 'scale(1.05)',
-                transition: 'transform 0.25s ease',
-              },
-            }}
-          >
-            <img
-              src={`https://image.tmdb.org/t/p/w300${item.backdrop_path}`}
-              alt={item.title}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                p: 1,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  color: 'white',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                {item.title}
-              </Typography>
-            </Box>
-          </Box>
-        ))}
+        {/* Grid of cards with progress */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(2, 1fr)',
+              sm: 'repeat(3, 1fr)',
+              md: 'repeat(4, 1fr)',
+              lg: 'repeat(5, 1fr)',
+              xl: 'repeat(6, 1fr)',
+            },
+            gap: { xs: 1, sm: 1.5, md: 2 },
+          }}
+        >
+          {movies.slice(0, 12).map((movie, index) => {
+            const item = items[index];
+            return (
+              <Box key={`${movie.id}-${movie.media_type}`} sx={{ position: 'relative' }}>
+                {/* Card with hover */}
+                <VideoItemWithHover
+                  video={movie}
+                  mediaType={movie.media_type === 'tv' ? MEDIA_TYPE.Tv : MEDIA_TYPE.Movie}
+                />
+                
+                {/* Progress bar under card */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 4,
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    zIndex: 10,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      height: '100%',
+                      width: `${item?.progress || 15}%`, // Default 15% if not set
+                      bgcolor: '#e50914', // Netflix red
+                      transition: 'width 0.3s ease',
+                    }}
+                  />
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
       </Box>
     </Stack>
   );
