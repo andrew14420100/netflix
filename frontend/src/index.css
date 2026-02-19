@@ -159,3 +159,35 @@ code {
     min-width: 100% !important;
     min-height: 56.25vw !important;
 }
+
+/* ✅ SMOOTH CARD ANIMATIONS - Like Streaming Community */
+.slick-slider .slick-slide {
+    position: relative;
+    transition: z-index 0s 0.3s;
+}
+
+.slick-slider .slick-slide:hover {
+    z-index: 999 !important;
+    transition: z-index 0s 0s;
+}
+
+/* Prevent overflow issues during animation */
+.slick-slider .slick-list {
+    overflow: visible !important;
+}
+
+.slick-slider .slick-track {
+    display: flex !important;
+}
+
+/* Smooth transition for all video cards */
+.slick-slider .slick-slide > div {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enable GPU acceleration for smoother animations */
+.slick-slider .slick-slide img {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
