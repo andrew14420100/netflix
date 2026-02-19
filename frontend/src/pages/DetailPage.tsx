@@ -1244,7 +1244,23 @@ export function Component() {
                               console.error('Invalid episode parameters:', { id, selectedSeason, episode: episode.episode_number });
                               return;
                             }
-                            navigate(`/${MAIN_PATH.watch}/tv/${id}?s=${selectedSeason}&e=${episode.episode_number}`);
+                            
+                            // Save episode info to continue watching before navigating
+                            const episodeProgress = getEpisodeProgress(selectedSeason, episode.episode_number);
+                            const existingItem = continueWatchingItems.find(
+                              item => item.tmdbId === Number(id) && 
+                                      item.mediaType === 'tv' && 
+                                      item.season === selectedSeason && 
+                                      item.episode === episode.episode_number
+                            );
+                            
+                            // Build URL with resume time if available
+                            let watchUrl = `/${MAIN_PATH.watch}/tv/${id}?s=${selectedSeason}&e=${episode.episode_number}`;
+                            if (existingItem?.currentTime) {
+                              watchUrl += `&t=${Math.floor(existingItem.currentTime)}`;
+                            }
+                            
+                            navigate(watchUrl);
                           }}
                           sx={{
                             bgcolor: "rgba(255,255,255,0.1)",
