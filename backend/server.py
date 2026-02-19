@@ -1350,7 +1350,7 @@ async def check_vixsrc_with_cache(tmdb_id: int, content_type: str, cache_hours: 
 
 @app.get("/api/public/tmdb/trending/{media_type}")
 async def get_tmdb_trending(media_type: str = "all", page: int = 1, verify_vixsrc: bool = True):
-    """Get trending content directly from TMDB, filtered by vixsrc availability"""
+    """Get trending content directly from TMDB, filtered by vixsrc availability and NO ANIME"""
     endpoint = f"/trending/{media_type}/week"
     data = await fetch_tmdb_data(endpoint, {"page": page})
     
@@ -1359,6 +1359,10 @@ async def get_tmdb_trending(media_type: str = "all", page: int = 1, verify_vixsr
     
     items = []
     for item in data["results"]:
+        # ❌ SKIP ANIME CONTENT
+        if is_anime_content(item):
+            continue
+            
         tmdb_id = item.get("id")
         item_type = item.get("media_type", media_type if media_type != "all" else "movie")
         
@@ -1381,6 +1385,9 @@ async def get_tmdb_trending(media_type: str = "all", page: int = 1, verify_vixsr
             "genre_ids": item.get("genre_ids", []),
             "vixsrc_available": True
         })
+    
+    # ✅ SORT BY TMDB ID for deterministic order
+    items.sort(key=lambda x: x["tmdbId"])
     
     return {"items": items, "total": len(items), "page": page}
 
