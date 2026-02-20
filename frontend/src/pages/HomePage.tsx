@@ -21,54 +21,56 @@ export async function loader() {
 }
 
 export function Component() {
-  const { mediaType: filterMediaType } = useParams<{ mediaType?: string }>();
-  
-  // ✅ Use cached sections data
-  const { data: dbSections = [], isLoading: sectionsLoading } = useSectionsData();
-  
-  // Determine media type from URL or default to movie
-  const currentMediaType = filterMediaType === "tv" ? MEDIA_TYPE.Tv : MEDIA_TYPE.Movie;
-  
-  const { data: genres, isSuccess } = useGetGenresQuery(currentMediaType);
+  const { mediaType: filterMediaType } =
+    useParams<{ mediaType?: string }>();
 
-  // ✅ Memoize sections to prevent recalculation
+  const { data, isLoading: sectionsLoading } =
+    useSectionsData();
+
+  const dbSections = data ?? [];
+
+  const currentMediaType =
+    filterMediaType === "tv"
+      ? MEDIA_TYPE.Tv
+      : MEDIA_TYPE.Movie;
+
+  const { data: genres, isSuccess } =
+    useGetGenresQuery(currentMediaType);
+
+  // Memoize sections
   const sectionTitles = useMemo((): CustomGenre[] => {
-    // If we have sections from database, use those
     if (dbSections.length > 0) {
-      // Filter by current media type
-      const filteredSections = dbSections.filter(s => {
-        const sectionMediaType = s.mediaType || 'movie';
-        return sectionMediaType === currentMediaType || 
-               sectionMediaType === 'mixed' || 
-               sectionMediaType === 'all';
+      const filteredSections = dbSections.filter((s: any) => {
+        const sectionMediaType = s.mediaType || "movie";
+        return (
+          sectionMediaType === currentMediaType ||
+          sectionMediaType === "mixed" ||
+          sectionMediaType === "all"
+        );
       });
-      
-      // Sort by order and convert to CustomGenre format
+
       return filteredSections
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
-        .map(s => ({
+        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+        .map((s: any) => ({
           name: s.name,
-          apiString: s.apiString
+          apiString: s.apiString,
         }));
     }
-    
-    // Fallback to default titles
+
     if (currentMediaType === MEDIA_TYPE.Tv) {
       return TV_TITLES;
     }
+
     return COMMON_TITLES;
   }, [dbSections, currentMediaType]);
 
-  // Show hero even while sections are loading
+  // MAIN RETURN
   if (isSuccess && genres && genres.length > 0) {
     return (
       <Stack spacing={2} data-testid="home-page">
         <HeroSection mediaType={currentMediaType} />
-        
-        {/* Continue Watching Section */}
         <ContinueWatchingSection />
-        
-        {/* Sections - from database or defaults */}
+
         {sectionTitles.map((genre) => (
           <SliderRowForGenre
             key={genre.apiString + genre.name}
@@ -76,8 +78,7 @@ export function Component() {
             mediaType={currentMediaType}
           />
         ))}
-        
-        {/* Genre-based sections from TMDB */}
+
         {genres.map((genre: Genre) => (
           <SliderRowForGenre
             key={genre.id}
@@ -88,16 +89,16 @@ export function Component() {
       </Stack>
     );
   }
-  
-  // Loading state - but still show Hero
+
+  // Loading fallback
   return (
     <Stack spacing={2} data-testid="home-page-loading">
       <HeroSection mediaType={currentMediaType} />
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <Typography color="grey.500">Caricamento contenuti...</Typography>
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <Typography color="grey.500">
+          Caricamento contenuti...
+        </Typography>
       </Box>
     </Stack>
   );
 }
-
-Component.displayName = "HomePage";
