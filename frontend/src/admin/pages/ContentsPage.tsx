@@ -958,14 +958,18 @@ const ContentsPage: React.FC = () => {
           Conferma Eliminazione
         </DialogTitle>
         <DialogContent sx={{ pt: '24px !important' }}>
-          <Typography>
-            Sei sicuro di voler eliminare{' '}
-            <strong>{selectedContent?.title || selectedContent?.name}</strong>?
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'grey.500', mt: 1 }}>
-            Questa azione non può essere annullata.
-          </Typography>
-        </DialogContent>
+  <Typography>
+    Sei sicuro di voler eliminare{' '}
+    <strong>
+      {String(selectedContent?.title ?? selectedContent?.name ?? '')}
+    </strong>
+    ?
+  </Typography>
+
+  <Typography variant="body2" sx={{ color: 'grey.500', mt: 1 }}>
+    Questa azione non può essere annullata.
+  </Typography>
+</DialogContent>
         <DialogActions sx={{ p: 3, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <Button onClick={() => setDeleteDialogOpen(false)} sx={{ color: 'grey.400' }}>
             Annulla
