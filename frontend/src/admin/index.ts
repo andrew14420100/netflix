@@ -11,4 +11,4 @@ export { default as MenuPage } from './pages/MenuPage';
 export { default as LogsPage } from './pages/LogsPage';
 export { adminAPI } from './services/api';
 export { tmdbService } from './services/tmdb';
-export type * from './types';
+export * from './types';
