@@ -265,24 +265,38 @@ export const useAdminStore = create(
         }
       },
 
-      deleteSection: async (sectionId) => {
-        const { token } = get();
-        try {
-          const response = await fetch(`${API_URL}/api/admin/sections/${sectionId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-          
-          if (!response.ok) throw new Error('Delete failed');
-          
-          set((state) => ({
-            sections: state.sections.filter(s => s.id !== sectionId)
-          }));
-          return { success: true };
-        } catch (error) {
-          return { success: false, error: error.message };
-        }
-      },
+      deleteSection: async (sectionId: string): Promise<{ success: boolean; error?: string }> => {
+  const { token } = get();
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/admin/sections/${sectionId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Delete failed");
+    }
+
+    set((state: any) => ({
+      sections: state.sections.filter(
+        (s: any) => s.id !== sectionId
+      ),
+    }));
+
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.message || "Unknown error",
+    };
+  }
+},
 
       reorderSections: async (orders) => {
         const { token } = get();
