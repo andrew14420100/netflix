@@ -478,22 +478,21 @@ export function Component() {
         overflow: "hidden"
       }}>
         {/* Background */}
-        {!showVideo || !videoKey ? (
-          <Box
-            component="img"
-            src={backdropUrl}
-            alt={getTitle()}
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              filter: "brightness(0.6)",
-            }}
-            data-testid="detail-cover-image"
-          />
+{!showVideo || !videoKey ? (
+  <img
+    src={backdropUrl as string}
+    alt={String(getTitle())}
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      filter: "brightness(0.6)",
+    }}
+    data-testid="detail-cover-image"
+  />
         ) : (
           <Box sx={{ 
             position: "absolute", 
