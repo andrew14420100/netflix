@@ -1288,6 +1288,16 @@ def get_user_history(user = Depends(get_current_user)):
     history = list(user_lists.find({"user_id": user["id"]}, {"_id": 0}).sort("added_at", -1).limit(50))
     return {"items": history}
 
+
+@app.delete("/api/auth/profile")
+def delete_user_account(user = Depends(get_current_user)):
+    """Delete user account and all associated data"""
+    user_id = user["id"]
+    users.delete_one({"id": user_id})
+    user_lists.delete_many({"user_id": user_id})
+    watch_progress.delete_many({"user_id": user_id})
+    return {"status": "deleted"}
+
 # =====================
 # WATCH PROGRESS ENDPOINTS
 # =====================
